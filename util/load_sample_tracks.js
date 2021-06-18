@@ -1,18 +1,16 @@
 'use strict';
 
-const artistIds = require('./artist-ids');
 const http = require('http');
 const JSONStream = require('JSONStream');
 const limit = 7; // The number of songs to retrieve for each artist
 const parser = JSONStream.parse(['results', true]);
-const popIds = artistIds.pop;
-const rapIds = artistIds.rap;
 const rc = require('redis').createClient();
-const rockIds = artistIds.rock;
 let rooms = require('../config').rooms;
 let score;
 let skip = 0; // Skip counter
 let songId = 0;
+
+const popIds = [];
 
 const options = {
   headers: { 'content-type': 'application/json' },
@@ -20,9 +18,7 @@ const options = {
   // Look up multiple artists by their IDs and get `limit` songs for each one
   path:
     '/lookup?id=' +
-    popIds.concat(rapIds, rockIds).join() +
-    '&entity=song&limit=' +
-    limit,
+    popIds.join()
   port: 80
 };
 
@@ -31,19 +27,8 @@ const options = {
  */
 
 const updateRooms = function(artistId) {
-  rooms = ['mixed'];
+  rooms = ['mixed', 'hits', 'pop'];
   score = 0;
-  if (artistId === popIds[0]) {
-    rooms.push('hits', 'pop');
-    // Set the skip counter (there is no need to update the rooms for the next pop artists)
-    skip = popIds.length - 1;
-  } else if (artistId === rapIds[0]) {
-    rooms.push('rap');
-    skip = rapIds.length - 1;
-  } else {
-    rooms.push('oldies', 'rock');
-    skip = rockIds.length - 1;
-  }
 };
 
 parser.on('data', function(track) {
