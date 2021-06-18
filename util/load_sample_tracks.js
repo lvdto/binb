@@ -18,7 +18,7 @@ const options = {
   // Look up multiple artists by their IDs and get `limit` songs for each one
   path:
     '/lookup?id=' +
-    popIds.join()
+    popIds.join(),
   port: 80
 };
 
